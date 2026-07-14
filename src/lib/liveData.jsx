@@ -37,13 +37,13 @@ export function LiveDataProvider({ children }) {
   }, []);
 
   const value = useMemo(() => ({ ...demo, ...state,
-    passports: state.passports?.length ? state.passports : demo.passports,
-    shipments: state.shipments?.length ? state.shipments : demo.shipments,
-    custodyEvents: state.custodyEvents?.length ? state.custodyEvents : demo.custodyEvents,
-    documents: state.documents?.length ? state.documents : demo.documents,
-    tenders: state.tenders?.length ? state.tenders : demo.tenders,
-    washBatches: state.washBatches?.length ? state.washBatches : demo.washBatches,
-    trades: state.trades?.length ? state.trades : demo.trades,
+    passports: state.live ? (state.passports || []) : demo.passports,
+    shipments: state.live ? (state.shipments || []) : demo.shipments,
+    custodyEvents: state.live ? (state.custodyEvents || []) : demo.custodyEvents,
+    documents: state.live ? (state.documents || []) : demo.documents,
+    tenders: state.live ? (state.tenders || []) : demo.tenders,
+    washBatches: state.live ? (state.washBatches || []) : demo.washBatches,
+    trades: state.live ? (state.trades || []) : demo.trades,
   }), [state]);
   return <LiveDataContext.Provider value={value}>{children}</LiveDataContext.Provider>;
 }
