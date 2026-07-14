@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   custodyEvents,
   documents,
@@ -13,6 +13,7 @@ import {
 } from './data.js';
 import { LiveDataProvider, useLiveData } from './lib/liveData.jsx';
 import EvidenceUploader from './components/EvidenceUploader.jsx';
+import CreateRecordModal from './components/CreateRecordModal.jsx';
 
 const pageCopy = {
   overview: {
@@ -69,7 +70,7 @@ function SectionHeader({ title, detail, action }) {
         <h2>{title}</h2>
         {detail ? <p>{detail}</p> : null}
       </div>
-      {action ? <button className="button button-secondary">{action}</button> : null}
+      {action ? <button className="button button-secondary" onClick={() => /^(Create|Add|Post)/.test(action) && window.dispatchEvent(new Event('ore-route:new-record'))}>{action}</button> : null}
     </div>
   );
 }
@@ -353,7 +354,10 @@ function DocumentsPage() {
 function AppShell() {
   const [activePage, setActivePage] = useState('overview');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [creating, setCreating] = useState(false);
   const activeCopy = pageCopy[activePage];
+  const canCreate = ['passports','shipments','custody','tenders','washplant','trades'].includes(activePage);
+  useEffect(() => { const open = () => setCreating(true); window.addEventListener('ore-route:new-record', open); return () => window.removeEventListener('ore-route:new-record', open); }, []);
 
   const content = useMemo(() => {
     switch (activePage) {
@@ -404,10 +408,11 @@ function AppShell() {
         <header className="topbar">
           <button className="menu-button" aria-label="Open navigation" onClick={() => setSidebarOpen(true)}>☰</button>
           <div className="page-heading"><span>{activeCopy.eyebrow}</span><h1>{activeCopy.title}</h1><p>{activeCopy.description}</p></div>
-          <div className="topbar-actions"><button className="icon-button" aria-label="Search">⌕</button><button className="icon-button notification-button" aria-label="Notifications">•<span>3</span></button><button className="button button-primary compact">New record</button></div>
+          <div className="topbar-actions"><button className="icon-button" aria-label="Search">⌕</button><button className="icon-button notification-button" aria-label="Notifications">•<span>3</span></button>{canCreate ? <button className="button button-primary compact" onClick={() => setCreating(true)}>New record</button> : null}</div>
         </header>
         <div className="page-body">{content}</div>
       </main>
+      {creating ? <CreateRecordModal page={activePage} onClose={(saved) => { setCreating(false); if (saved) window.location.reload(); }} /> : null}
     </div>
   );
 }
