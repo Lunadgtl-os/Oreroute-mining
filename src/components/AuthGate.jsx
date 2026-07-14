@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { getSession, signInWithPassword, signOut, signUp } from '../lib/auth.js';
 import { isSupabaseConfigured, supabase } from '../lib/supabase.js';
+import OrganisationOnboarding from './OrganisationOnboarding.jsx';
 
 export default function AuthGate({ children }) {
   const [session, setSession] = useState(null);
@@ -8,6 +9,13 @@ export default function AuthGate({ children }) {
   const [mode, setMode] = useState('signin');
   const [form, setForm] = useState({ fullName: '', email: '', password: '' });
   const [message, setMessage] = useState('');
+  const [hasOrganisation, setHasOrganisation] = useState(null);
+
+  async function loadMembership() {
+    const { data, error } = await supabase.from('organisation_members').select('organisation_id').limit(1);
+    if (error) throw error;
+    setHasOrganisation(Boolean(data?.length));
+  }
 
   useEffect(() => {
     if (!isSupabaseConfigured || !supabase) return undefined;
@@ -25,6 +33,11 @@ export default function AuthGate({ children }) {
     return () => data.subscription.unsubscribe();
   }, []);
 
+  useEffect(() => {
+    if (!session) return;
+    loadMembership().catch((error) => setMessage(error.message));
+  }, [session]);
+
   if (!isSupabaseConfigured) {
     return (
       <>
@@ -41,6 +54,8 @@ export default function AuthGate({ children }) {
   }
 
   if (session) {
+    if (hasOrganisation === null) return <div className="auth-loading">Loading organisation…</div>;
+    if (!hasOrganisation) return <OrganisationOnboarding onComplete={loadMembership} />;
     return (
       <>
         <div className="session-strip">
