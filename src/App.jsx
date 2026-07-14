@@ -12,6 +12,7 @@ import {
   washBatches,
 } from './data.js';
 import { LiveDataProvider, useLiveData } from './lib/liveData.jsx';
+import EvidenceUploader from './components/EvidenceUploader.jsx';
 
 const pageCopy = {
   overview: {
@@ -335,6 +336,7 @@ function TradesPage() {
 }
 
 function DocumentsPage() {
+  const { documents } = useLiveData();
   const columns = [
     { key: 'title', label: 'Document', render: (row) => <span className="strong">{row.title}</span> },
     { key: 'type', label: 'Evidence type' },
@@ -342,7 +344,7 @@ function DocumentsPage() {
     { key: 'confidence', label: 'Confidence', render: (row) => <strong>{row.confidence}%</strong> },
     { key: 'status', label: 'Status', render: (row) => <StatusPill>{row.status}</StatusPill> },
   ];
-  return <section className="panel"><SectionHeader title="Evidence vault" detail="Documents linked to the exact passport, shipment and trade they support." action="Upload evidence" /><DataTable columns={columns} rows={documents} /></section>;
+  return <section className="panel"><SectionHeader title="Evidence vault" detail="Documents linked to the exact passport, shipment and trade they support." /><EvidenceUploader /><DataTable columns={columns} rows={documents} /></section>;
 }
 
 function AppShell() {
