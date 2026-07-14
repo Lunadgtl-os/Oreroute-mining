@@ -86,7 +86,7 @@ export default function AuthGate({ children }) {
 
   return (
     <main className="auth-screen">
-      <section className="auth-visual" aria-label="Ore Route mining operations">
+      <section className="auth-visual" style={{ backgroundImage: `linear-gradient(90deg,rgba(8,18,15,.88),rgba(8,18,15,.32)),url(${import.meta.env.BASE_URL}ore-route-mining-hero.jpg)` }} aria-label="Ore Route mining operations">
         <div className="auth-visual-copy">
           <p className="eyebrow">ORE ROUTE BY SOVEREIGN SALTS</p>
           <h1>Verified mineral movement from source to buyer.</h1>
