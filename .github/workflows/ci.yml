@@ -28,3 +28,6 @@ jobs:
 
       - name: Build application
         run: npm run build
+
+      - name: Verify security boundaries
+        run: npm run verify:security
