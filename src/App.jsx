@@ -11,6 +11,7 @@ import {
   trades,
   washBatches,
 } from './data.js';
+import { LiveDataProvider, useLiveData } from './lib/liveData.jsx';
 
 const pageCopy = {
   overview: {
@@ -96,6 +97,7 @@ function DataTable({ columns, rows, empty = 'No records available.' }) {
 }
 
 function OverviewPage({ onNavigate }) {
+  const { custodyEvents, exceptions, shipments, stats, trades } = useLiveData();
   return (
     <>
       <section className="hero-card">
@@ -203,6 +205,7 @@ function OverviewPage({ onNavigate }) {
 }
 
 function PassportsPage() {
+  const { passports } = useLiveData();
   const columns = [
     { key: 'lot', label: 'Lot ID', render: (row) => <span className="mono strong">{row.lot}</span> },
     { key: 'mineral', label: 'Material' },
@@ -217,6 +220,7 @@ function PassportsPage() {
 }
 
 function ShipmentsPage() {
+  const { shipments } = useLiveData();
   return (
     <div className="split-layout">
       <section className="panel panel-span-2">
@@ -253,6 +257,7 @@ function ShipmentsPage() {
 }
 
 function CustodyPage() {
+  const { custodyEvents } = useLiveData();
   return (
     <div className="split-layout">
       <section className="panel panel-span-2">
@@ -340,7 +345,7 @@ function DocumentsPage() {
   return <section className="panel"><SectionHeader title="Evidence vault" detail="Documents linked to the exact passport, shipment and trade they support." action="Upload evidence" /><DataTable columns={columns} rows={documents} /></section>;
 }
 
-function App() {
+function AppShell() {
   const [activePage, setActivePage] = useState('overview');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const activeCopy = pageCopy[activePage];
@@ -400,6 +405,10 @@ function App() {
       </main>
     </div>
   );
+}
+
+function App() {
+  return <LiveDataProvider><AppShell /></LiveDataProvider>;
 }
 
 export default App;
