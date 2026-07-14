@@ -101,7 +101,7 @@ function OverviewPage({ onNavigate }) {
   const { custodyEvents, exceptions, shipments, stats, trades } = useLiveData();
   return (
     <>
-      <section className="hero-card">
+      <section className="hero-card" style={{ backgroundImage: `url(${import.meta.env.BASE_URL}ore-route-mining-hero.jpg)` }}>
         <div className="hero-overlay" />
         <div className="hero-content">
           <span className="hero-kicker">ORE ROUTE BY SOVEREIGN SALTS</span>
@@ -289,6 +289,7 @@ function CustodyPage() {
 }
 
 function TendersPage() {
+  const { tenders } = useLiveData();
   const columns = [
     { key: 'ref', label: 'Tender', render: (row) => <span className="mono strong">{row.ref}</span> },
     { key: 'route', label: 'Route' },
@@ -302,6 +303,7 @@ function TendersPage() {
 }
 
 function WashPlantPage() {
+  const { washBatches } = useLiveData();
   const columns = [
     { key: 'ref', label: 'Batch', render: (row) => <span className="mono strong">{row.ref}</span> },
     { key: 'mineral', label: 'Material' },
@@ -323,6 +325,7 @@ function WashPlantPage() {
 }
 
 function TradesPage() {
+  const { trades } = useLiveData();
   const columns = [
     { key: 'ref', label: 'Trade dossier', render: (row) => <span className="mono strong">{row.ref}</span> },
     { key: 'mineral', label: 'Material' },
