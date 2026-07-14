@@ -24,7 +24,7 @@ export default function OrganisationOnboarding({ onComplete }) {
 
   return (
     <main className="auth-screen">
-      <section className="auth-visual"><div className="auth-visual-copy"><p className="eyebrow">CONTROLLED ONBOARDING</p><h1>Create your operating organisation.</h1><p>Your account becomes the verified owner. Additional members must be invited later by an authorised administrator.</p></div></section>
+      <section className="auth-visual" style={{ backgroundImage: `linear-gradient(90deg,rgba(8,18,15,.88),rgba(8,18,15,.32)),url(${import.meta.env.BASE_URL}ore-route-mining-hero.jpg)` }}><div className="auth-visual-copy"><p className="eyebrow">CONTROLLED ONBOARDING</p><h1>Create your operating organisation.</h1><p>Your account becomes the verified owner. Additional members must be invited later by an authorised administrator.</p></div></section>
       <section className="auth-panel"><div className="auth-card"><p className="eyebrow">ORGANISATION PROFILE</p><h2>Set up Ore Route</h2><form onSubmit={submit}>
         <label>Organisation name<input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></label>
         <label>Organisation type<select value={form.orgType} onChange={(e) => setForm({ ...form, orgType: e.target.value })}>{types.map((type) => <option key={type} value={type}>{type.replace('_', ' ')}</option>)}</select></label>
