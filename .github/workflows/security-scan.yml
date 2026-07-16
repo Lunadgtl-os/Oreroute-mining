@@ -21,14 +21,28 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Scan for secrets
-        uses: gitleaks/gitleaks-action@dcedce43c6f43de0b836d1fe38946645c9c638dc # v2
-        env:
-          GITLEAKS_ENABLE_UPLOAD_ARTIFACT: true
-          GITLEAKS_ENABLE_SUMMARY: true
+      - name: Set up Go
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
-          config-path: ''
-          args: --baseline-path=.gitleaks-baseline.json
+          go-version: stable
+
+      - name: Install gitleaks
+        run: go install github.com/zricethezav/gitleaks/v8@latest
+
+      - name: Scan for secrets
+        run: |
+          "$(go env GOPATH)/bin/gitleaks" git . \
+            --baseline-path=.gitleaks-baseline.json \
+            --exit-code 1 \
+            --report-format sarif \
+            --report-path gitleaks-results.sarif
+
+      - name: Upload Gitleaks SARIF report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: gitleaks-report
+          path: gitleaks-results.sarif
 
   sast:
     name: Semgrep (SAST)
@@ -91,14 +105,24 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
-      - name: Run Trivy filesystem scan
-        uses: aquasecurity/trivy-action@915b19bbe73b92a6cf82a1bc12b087c9a19a5fe2 # v0.28.0
+      - name: Set up Go
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
-          scan-type: fs
-          scanners: vuln,secret,misconfig
-          exit-code: 1
-          format: sarif
-          output: trivy-results.sarif
+          go-version: stable
+
+      - name: Install trivy
+        env:
+          GOEXPERIMENT: jsonv2
+        run: go install github.com/aquasecurity/trivy/cmd/trivy@latest
+
+      - name: Run Trivy filesystem scan
+        run: |
+          "$(go env GOPATH)/bin/trivy" fs \
+            --scanners vuln,secret,misconfig \
+            --exit-code 1 \
+            --format sarif \
+            --output trivy-results.sarif \
+            .
 
       - name: Upload Trivy SARIF report
         if: always()
