@@ -1,0 +1,8 @@
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Exclude gitleaks' own baseline file - it necessarily contains copies of accepted findings' matched text, which would otherwise self-flag on every scan."
+paths = [
+  '''\.gitleaks-baseline\.json$''',
+]

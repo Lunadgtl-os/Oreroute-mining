@@ -1,0 +1,133 @@
+name: Security & Architecture Scans
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches:
+      - 'migration/**'
+      - 'feature/**'
+
+permissions:
+  contents: read
+
+jobs:
+  secrets:
+    name: Gitleaks (secret scan)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version: stable
+
+      - name: Install gitleaks
+        run: go install github.com/zricethezav/gitleaks/v8@latest
+
+      - name: Scan for secrets
+        run: |
+          "$(go env GOPATH)/bin/gitleaks" git . \
+            --log-opts="--all" \
+            --baseline-path=.gitleaks-baseline.json \
+            --exit-code 1 \
+            --report-format sarif \
+            --report-path gitleaks-results.sarif
+
+      - name: Upload Gitleaks SARIF report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: gitleaks-report
+          path: gitleaks-results.sarif
+
+  sast:
+    name: Semgrep (SAST)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Semgrep
+        run: python3 -m pip install semgrep
+
+      - name: Run Semgrep
+        run: |
+          semgrep scan \
+            --config p/ci \
+            --config p/security-audit \
+            --config p/secrets \
+            --config p/javascript \
+            --config p/react \
+            --error
+
+  architecture:
+    name: Dependency Cruiser (architecture rules)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24
+
+      - name: Install dependency-cruiser
+        run: npm install -g dependency-cruiser
+
+      - name: Validate architecture rules
+        run: depcruise --config src
+
+      - name: Generate architecture diagram data
+        if: always()
+        run: depcruise --config --output-type mermaid src > architecture.mmd
+
+      - name: Upload architecture diagram source
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: architecture-diagram
+          path: architecture.mmd
+
+  vuln-scan:
+    name: Trivy (dependency + secret + IaC scan)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Set up Go
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version: stable
+
+      - name: Install trivy
+        env:
+          GOEXPERIMENT: jsonv2
+        run: go install github.com/aquasecurity/trivy/cmd/trivy@latest
+
+      - name: Run Trivy filesystem scan
+        run: |
+          "$(go env GOPATH)/bin/trivy" fs \
+            --scanners vuln,secret,misconfig \
+            --exit-code 1 \
+            --format sarif \
+            --output trivy-results.sarif \
+            .
+
+      - name: Upload Trivy SARIF report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: trivy-report
+          path: trivy-results.sarif
