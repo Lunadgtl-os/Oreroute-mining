@@ -1,0 +1,108 @@
+name: Security & Architecture Scans
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches:
+      - 'migration/**'
+      - 'feature/**'
+
+permissions:
+  contents: read
+
+jobs:
+  secrets:
+    name: Gitleaks (secret scan)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Scan for secrets
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITLEAKS_ENABLE_UPLOAD_ARTIFACT: true
+          GITLEAKS_ENABLE_SUMMARY: true
+        with:
+          config-path: ''
+          args: --baseline-path=.gitleaks-baseline.json
+
+  sast:
+    name: Semgrep (SAST)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Semgrep
+        run: python3 -m pip install semgrep
+
+      - name: Run Semgrep
+        run: |
+          semgrep scan \
+            --config p/ci \
+            --config p/security-audit \
+            --config p/secrets \
+            --config p/javascript \
+            --config p/react \
+            --error
+
+  architecture:
+    name: Dependency Cruiser (architecture rules)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install dependency-cruiser
+        run: npm install -g dependency-cruiser
+
+      - name: Validate architecture rules
+        run: depcruise --config src
+
+      - name: Generate architecture diagram data
+        if: always()
+        run: depcruise --config --output-type mermaid src > architecture.mmd
+
+      - name: Upload architecture diagram source
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: architecture-diagram
+          path: architecture.mmd
+
+  vuln-scan:
+    name: Trivy (dependency + secret + IaC scan)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Trivy filesystem scan
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scanners: vuln,secret,misconfig
+          exit-code: 1
+          format: sarif
+          output: trivy-results.sarif
+
+      - name: Upload Trivy SARIF report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-report
+          path: trivy-results.sarif

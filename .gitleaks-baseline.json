@@ -1,0 +1,22 @@
+[
+ {
+  "RuleID": "generic-api-key",
+  "Description": "Detected a Generic API Key, potentially exposing access to various services and sensitive operations.",
+  "StartLine": 22,
+  "EndLine": 22,
+  "StartColumn": 8,
+  "EndColumn": 77,
+  "Match": "VITE_SUPABASE_ANON_KEY: sb_publishable__9ANUxqKaQj06hdb40xoQw_vCaoqii7",
+  "Secret": "sb_publishable__9ANUxqKaQj06hdb40xoQw_vCaoqii7",
+  "File": ".github/workflows/deploy-pages.yml",
+  "SymlinkFile": "",
+  "Commit": "d6b0e62a32a2b2fd9714a09c62bdedcd893edc29",
+  "Entropy": 4.621176,
+  "Author": "TWABAAMGUMBAZ",
+  "Email": "94234051+TWABAAMGUMBAZ@users.noreply.github.com",
+  "Date": "2026-07-14T20:03:17Z",
+  "Message": "Connect GitHub Pages deployment to Supabase",
+  "Tags": [],
+  "Fingerprint": "d6b0e62a32a2b2fd9714a09c62bdedcd893edc29:.github/workflows/deploy-pages.yml:generic-api-key:22"
+ }
+]
