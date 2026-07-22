@@ -2,6 +2,9 @@ node_modules/
 dist/
 .vite/
 graphify-out/
+scrape-output/
+__pycache__/
+*.pyc
 .env
 .env.*
 !.env.example
